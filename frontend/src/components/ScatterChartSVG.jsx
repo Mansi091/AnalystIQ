@@ -54,7 +54,7 @@ function ScatterChartSVG({ chartData, xColumn, yColumn, svgWidth = 600, svgHeigh
         </g>
       ))}
 
-      {/* Vertical Ticks */}
+      
       {xGrid.map((tick, idx) => (
         <g key={idx}>
           <line x1={tick.x} y1={topMargin} x2={tick.x} y2={topMargin + plotHeight} stroke="#e2e8f0" strokeOpacity={0.5} />
@@ -62,8 +62,7 @@ function ScatterChartSVG({ chartData, xColumn, yColumn, svgWidth = 600, svgHeigh
         </g>
       ))}
 
-      {/* Dots */}
-      {chartData.map((d, idx) => {
+       {chartData.map((d, idx) => {
         const cx = leftMargin + ((d.x - minX) / scaleX) * plotWidth;
         const cy = topMargin + plotHeight - ((d.y - minY) / scaleY) * plotHeight;
         const isHovered = hoveredPoint === idx;
@@ -85,11 +84,9 @@ function ScatterChartSVG({ chartData, xColumn, yColumn, svgWidth = 600, svgHeigh
         );
       })}
 
-      {/* Axes */}
       <line x1={leftMargin} y1={topMargin + plotHeight} x2={svgWidth - rightMargin} y2={topMargin + plotHeight} stroke="#cbd5e1" strokeWidth={1.5} />
       <line x1={leftMargin} y1={topMargin} x2={leftMargin} y2={topMargin + plotHeight} stroke="#cbd5e1" strokeWidth={1.5} />
-
-      {/* Hover Tooltip */}
+      
       {hoveredPoint !== null && (
         <text x={svgWidth / 2} y={topMargin - 10} textAnchor="middle" fill="#be123c" fontSize={11} className="font-semibold">
           {xColumn}: {chartData[hoveredPoint].x.toFixed(2)}, {yColumn}: {chartData[hoveredPoint].y.toFixed(2)}
