@@ -1,4 +1,4 @@
-# 📊 AnalystIQ: AutoML & AI Data Analyst
+# 📊 AnalystIQ
 
 AnalystIQ is an interactive automated Data Science platform that combines a data-cleaning pipeline, AutoML, and an AI-powered conversational analyst. Upload tabular datasets, perform quick diagnostics, automatically train models, and chat with your data in real-time.
 
