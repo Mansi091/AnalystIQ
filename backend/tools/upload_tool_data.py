@@ -8,7 +8,6 @@ from config import UPLOAD_DIR, CLEANED_DIR
 def load_dataframe(filename: str) -> pd.DataFrame:
     """Load dataframe from uploaded or cleaned file."""
 
-    # Select the folder directory dynamically based on prefix
     if filename.startswith("cleaned_"):
         directory = CLEANED_DIR
     else:
