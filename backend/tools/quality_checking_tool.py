@@ -83,8 +83,8 @@ def analyze_quality_and_recommend_cleaning(filename: str) -> dict:
                 "issue_type": "outliers",
                 "column": column,
                 "issue": f"{column} has {outlier_count} possible outliers",
-                "recommendation": "Review outliers or cap them using IQR limits",
-                "action": "review_or_cap_outliers_iqr",
+                "recommendation": "Remove outliers using IQR limits",
+                "action": "remove_outliers_iqr",
                 "lower_bound": float(lower_bound),
                 "upper_bound": float(upper_bound)
             })

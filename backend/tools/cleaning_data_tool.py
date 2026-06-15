@@ -5,8 +5,7 @@ import pandas as pd
 from tools.upload_tool_data import load_dataframe
 
 
-CLEANED_DIR = "cleaned_data"
-os.makedirs(CLEANED_DIR, exist_ok=True)
+from config import CLEANED_DIR
 
 
 @tool
@@ -16,6 +15,7 @@ def apply_cleaning(filename: str) -> dict:
     - Fill numeric missing values using median
     - Fill categorical missing values using mode
     - Remove duplicate rows
+    - Remove numeric outliers using IQR bounds
     - Save cleaned dataset
     """
 
@@ -36,7 +36,7 @@ def apply_cleaning(filename: str) -> dict:
             df[column] = df[column].fillna(median_value)
 
             actions_applied.append(
-                f"Filled missing values in '{column}' using median ({median_value})"
+                f"filled missing values in '{column}' using median ({median_value})"
             )
 
         #categorical columns
@@ -49,7 +49,7 @@ def apply_cleaning(filename: str) -> dict:
                 df[column] = df[column].fillna(mode_value)
 
                 actions_applied.append(
-                    f"Filled missing values in '{column}' using mode ({mode_value})"
+                    f"filled missing values in '{column}' using mode ({mode_value})"
                 )
 
     #removing duplicates
@@ -59,8 +59,32 @@ def apply_cleaning(filename: str) -> dict:
         df = df.drop_duplicates()
 
         actions_applied.append(
-            f"Removed {duplicate_count} duplicate rows"
+            f"removed {duplicate_count} duplicate rows"
         )
+
+    #remove numeric outliers using IQR bounds
+    numeric_columns = df.select_dtypes(include="number").columns
+    for column in numeric_columns:
+        q1 = df[column].quantile(0.25)
+        q3 = df[column].quantile(0.75)
+        iqr = q3 - q1
+
+        if iqr == 0:
+            continue
+
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+
+        outlier_mask = (df[column] < lower_bound) | (df[column] > upper_bound)
+        outlier_count = int(outlier_mask.sum())
+
+        if outlier_count > 0:
+            before_rows = df.shape[0]
+            df = df.loc[~outlier_mask].reset_index(drop=True)
+            removed_rows = before_rows - df.shape[0]
+            actions_applied.append(
+                f"removed {removed_rows} row(s) with outliers in '{column}' using IQR bounds [{lower_bound:.2f}, {upper_bound:.2f}]"
+            )
 
     #saving cleaned dataset
     cleaned_filename = f"cleaned_{filename}"
@@ -77,7 +101,58 @@ def apply_cleaning(filename: str) -> dict:
         df.to_excel(cleaned_path, index=False)
 
     return {
-        "message": "Cleaning completed successfully",
+        "message": "cleaning completed successfully",
+        "cleaned_filename": cleaned_filename,
+        "rows_after_cleaning": int(df.shape[0]),
+        "columns": int(df.shape[1]),
+        "actions_applied": actions_applied
+    }
+
+
+@tool
+def remove_outliers(filename: str) -> dict:
+    """
+    Remove outliers from numerical columns using IQR limits.
+    """
+    df = load_dataframe(filename)
+    actions_applied = []
+
+    numeric_columns = df.select_dtypes(include="number").columns
+    for column in numeric_columns:
+        q1 = df[column].quantile(0.25)
+        q3 = df[column].quantile(0.75)
+        iqr = q3 - q1
+
+        if iqr == 0:
+            continue
+
+        lower_bound = q1 - 1.5 * iqr
+        upper_bound = q3 + 1.5 * iqr
+
+        outlier_mask = (df[column] < lower_bound) | (df[column] > upper_bound)
+        outlier_count = int(outlier_mask.sum())
+
+        if outlier_count > 0:
+            before_rows = df.shape[0]
+            df = df.loc[~outlier_mask].reset_index(drop=True)
+            removed_rows = before_rows - df.shape[0]
+            actions_applied.append(
+                f"removed {removed_rows} row(s) with outliers in '{column}' using IQR bounds [{lower_bound:.2f}, {upper_bound:.2f}]"
+            )
+
+    cleaned_filename = f"cleaned_{filename}"
+    cleaned_path = os.path.join(
+        CLEANED_DIR,
+        cleaned_filename
+    )
+
+    if filename.endswith(".csv"):
+        df.to_csv(cleaned_path, index=False)
+    else:
+        df.to_excel(cleaned_path, index=False)
+
+    return {
+        "message": "outlier removal completed successfully",
         "cleaned_filename": cleaned_filename,
         "rows_after_cleaning": int(df.shape[0]),
         "columns": int(df.shape[1]),

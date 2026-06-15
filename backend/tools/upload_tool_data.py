@@ -2,17 +2,23 @@ from langchain_core.tools import tool
 import os
 import pandas as pd
 
-UPLOAD_DIR = "uploads"
+from config import UPLOAD_DIR, CLEANED_DIR
 
 
 def load_dataframe(filename: str) -> pd.DataFrame:
-    """Load dataframe from uploaded file."""
+    """Load dataframe from uploaded or cleaned file."""
 
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    # Select the folder directory dynamically based on prefix
+    if filename.startswith("cleaned_"):
+        directory = CLEANED_DIR
+    else:
+        directory = UPLOAD_DIR
+
+    file_path = os.path.join(directory, filename)
 
     if not os.path.exists(file_path):
         raise FileNotFoundError(
-            f"File {filename} not found in {UPLOAD_DIR}"
+            f"File {filename} not found in {directory}"
         )
 
     if filename.endswith(".csv"):
@@ -22,7 +28,7 @@ def load_dataframe(filename: str) -> pd.DataFrame:
         return pd.read_excel(file_path)
 
     raise ValueError(
-        "File must end with .csv, .xlsx, or .xls"
+        "file must end with .csv, .xlsx, or .xls"
     )
 
 
