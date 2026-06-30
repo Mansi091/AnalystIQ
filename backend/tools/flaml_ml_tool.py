@@ -37,13 +37,12 @@ def train_with_flaml(
             "error": f"Target column '{target_column}' not found in dataset."
         }
 
-    #remove rows where target is missing
     df = df.dropna(subset=[target_column])
 
     X = df.drop(columns=[target_column])
     y = df[target_column]
 
-    #fill numeric missing values
+
     numeric_columns = X.select_dtypes(include="number").columns
 
     for column in numeric_columns:
@@ -51,7 +50,6 @@ def train_with_flaml(
             X[column].median()
         )
 
-    #fill categorical missing values
     categorical_columns = X.select_dtypes(
         exclude="number"
     ).columns
@@ -69,7 +67,7 @@ def train_with_flaml(
 
         X[column] = X[column].astype("category")
 
-    #task classifying
+
     if (
         pd.api.types.is_numeric_dtype(y)
         and y.nunique() > 10
@@ -107,7 +105,7 @@ def train_with_flaml(
             "error": f"FLAML training failed: {str(e)}"
         }
 
-    #best model details
+
     best_model = automl.best_estimator
     best_config = automl.best_config
     best_loss = automl.best_loss
